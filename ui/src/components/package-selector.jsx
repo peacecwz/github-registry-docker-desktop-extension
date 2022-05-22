@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStateMachine } from 'little-state-machine';
 import updateStore from '../store/change-store';
+import DockerClient from '../utils/docker-client';
 
 const PackageSelector = () => {
     const { actions, state } = useStateMachine({ updateStore });
@@ -10,7 +11,7 @@ const PackageSelector = () => {
             currentPackage: packageName
         })
 
-        const result = await state?.client?.extension.vm.service.post(`/package-versions`, {
+        const result = await DockerClient.extension.vm.service.post(`/package-versions`, {
             packageName,
             token: state?.github?.token,
             organizationId: state?.github?.currentOrganization,

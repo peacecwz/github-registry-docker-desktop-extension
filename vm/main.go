@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"github.com/sirupsen/logrus"
 
 	"github.com/google/go-github/v44/github"
@@ -169,28 +170,36 @@ func getPackageVersions(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, GetPackageVersionsResponses{PackageVersions: packages})
 }
 
-func listen(path string) (net.Listener, error) {
+func listenOnUnixSocket(path string) (net.Listener, error) {
 	return net.Listen("unix", path)
 }
 
 func main() {
-	var socketPath string
-	flag.StringVar(&socketPath, "socket", "/run/guest/volumes-service.sock", "Unix domain socket to listen on")
-	flag.Parse()
+	isBrowser := os.Getenv("BROWSER")
 
-	os.RemoveAll(socketPath)
-
-	logrus.New().Infof("Starting listening on %s\n", socketPath)
 	router := echo.New()
 	router.HideBanner = true
-
 	startURL := ""
 
-	ln, err := listen(socketPath)
-	if err != nil {
-		log.Fatal(err)
+	if isBrowser == "true" {
+		router.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: []string{"http://localhost:8081"},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		}))
+		startURL = ":8080"
+	} else {
+		var socketPath string
+		flag.StringVar(&socketPath, "socket", "/run/guest/volumes-service.sock", "Unix domain socket to listen on")
+		flag.Parse()
+		os.RemoveAll(socketPath)
+		logrus.New().Infof("Starting listening on %s\n", socketPath)
+
+		ln, err := listenOnUnixSocket(socketPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		router.Listener = ln
 	}
-	router.Listener = ln
 
 	router.POST("/organizations", getOrganizations)
 	router.POST("/packages", getPackages)

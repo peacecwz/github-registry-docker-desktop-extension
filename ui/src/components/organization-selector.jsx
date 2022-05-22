@@ -2,6 +2,7 @@ import React from 'react';
 import { Autocomplete, TextField } from '@mui/material';
 import { useStateMachine } from 'little-state-machine';
 import updateStore from '../store/change-store';
+import DockerClient from '../utils/docker-client';
 
 const OrganizationSelector = () => {
     const { actions, state } = useStateMachine({ updateStore });
@@ -11,7 +12,7 @@ const OrganizationSelector = () => {
             currentOrganization: orgId
         });
 
-        const result = await state?.client?.extension.vm.service.post(`/packages`, {
+        const result = await DockerClient.extension.vm.service.post(`/packages`, {
             token: state?.github?.token,
             organizationId: orgId
         });

@@ -6,6 +6,7 @@ import PackageSelector from "./components/package-selector";
 import PackageVersionSelector from "./components/package-version-selector";
 import GithubDataTable from "./components/table";
 import Layout from "./components/layout";
+import DockerClient from './utils/docker-client'
 
 const App = () => {
   const { actions, state } = useStateMachine({ updateStore });
@@ -15,7 +16,7 @@ const App = () => {
   }
 
   const getOrganizations = async () => {
-    const result = await state?.client?.extension.vm.service.post("/organizations", {
+    const result = await DockerClient.extension.vm.service.post("/organizations", {
       token: state?.github?.token
     });
 
@@ -28,7 +29,7 @@ const App = () => {
     const url = `ghcr.io/${state?.github?.currentOrganization}/${state?.github?.currentPackage}:${state?.github?.currentPackageVersion}`;
 
     try {
-      var result = await state?.client?.docker.cli.exec("login", [
+      var result = await DockerClient.docker.cli.exec("login", [
         'ghcr.io',
         '--username',
         state?.github?.currentOrganization,
@@ -40,7 +41,7 @@ const App = () => {
       console.log('login-error', e)
     }
 
-    var result = await state?.client?.docker.cli.exec("pull", [
+    var result = await DockerClient.docker.cli.exec("pull", [
       url
     ]);
     console.log('pull-package-version', result.lines())
