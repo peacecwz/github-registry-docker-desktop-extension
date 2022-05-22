@@ -1,0 +1,19 @@
+{
+  "icon": "docker.svg",
+  "vm": {
+    "composefile": "docker-compose.yaml",
+    "exposes": {
+      "socket": "extension-github-registry.sock"
+    }
+  },
+  "ui": {
+    "dashboard-tab": {
+      "title": "Github-Registry",
+      "src": "index.html",
+      "root": "ui",
+      "backend": {
+        "socket": "extension-github-registry.sock"
+      }
+    }
+  }
+}
