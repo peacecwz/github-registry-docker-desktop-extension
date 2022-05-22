@@ -11,9 +11,33 @@ function log(store) {
   console.log(store);
 }
 
+const getDockerDesktopClient = () => {
+  try {
+    return createDockerDesktopClient();
+  } catch {
+    // TODO (peacecwz): Return mock Docker Desktop Client or connect with NodeJS Dev script on Websocket
+    return {
+      extension: {
+        vm: {
+          service: {
+            get: async (url) => {
+              console.log(`[DOCKER_DESKTOP_CLIENT GET]: Url: ${url}`)
+              return Promise.resolve();
+            },
+            post: async (url, data) => {
+              console.log(`[DOCKER_DESKTOP_CLIENT POST]: Url: ${url} Data:`, data)
+              return Promise.resolve();
+            }
+          },
+        },
+      },
+    };
+  }
+}
+
 createStore({
-  isLoading: true,
-  client: createDockerDesktopClient(),
+  isLoading: false,
+  client: getDockerDesktopClient(),
   github: {
     currentOrganization: null,
     currentPackage: null,

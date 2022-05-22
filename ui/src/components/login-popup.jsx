@@ -11,9 +11,9 @@ import {
 import { useStateMachine } from 'little-state-machine';
 import updateStore from '../store/change-store';
 
-export const LoginPopup = ({ open, setOpen, onClose }) => {
+const LoginPopup = ({ open, setOpen, onClose }) => {
     const { actions, state } = useStateMachine({ updateStore });
-    const [token, setToken] = useState(state?.github?.token);
+    const [token, setToken] = useState(state?.github?.token || '');
 
     const handleLogin = () => {
         localStorage.setItem('token', token);
@@ -54,3 +54,5 @@ export const LoginPopup = ({ open, setOpen, onClose }) => {
         </Dialog>
     </div>
 }
+
+export default LoginPopup;

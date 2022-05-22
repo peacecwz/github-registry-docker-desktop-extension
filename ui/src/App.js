@@ -1,19 +1,16 @@
 import React, { useState } from "react";
 import Button from "@mui/material/Button";
-import { LoginPopup } from "./components/login-popup";
 import { useStateMachine } from 'little-state-machine';
 import updateStore from './store/change-store';
 import PackageSelector from "./components/package-selector";
 import PackageVersionSelector from "./components/package-version-selector";
 import GithubDataTable from "./components/table";
+import Layout from "./components/layout";
 
-function App() {
+const App = () => {
   const { actions, state } = useStateMachine({ updateStore });
 
-  const [open, setOpen] = useState(state?.github?.token ? false : true);
-
   const onClose = async () => {
-    console.log('onClose called')
     await getOrganizations();
   }
 
@@ -23,7 +20,7 @@ function App() {
     });
 
     actions.updateStore({
-      organizations: result.Organizations || []
+      organizations: (result && result.Organizations) || []
     });
   };
 
@@ -59,11 +56,9 @@ function App() {
   }, [])
 
   return (
-    <div className="App">
-      <LoginPopup onClose={onClose} open={open} setOpen={setOpen} />
+    <Layout>
       <PackageSelector />
       <PackageVersionSelector />
-
 
       <GithubDataTable />
 
@@ -74,7 +69,7 @@ function App() {
       <Button variant="contained" onClick={deletePackage}>
         Delete Package
       </Button>
-    </div>
+    </Layout>
   );
 }
 
