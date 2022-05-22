@@ -21,7 +21,7 @@ createStore({
     organizations: [],
     packages: [],
     packageVersions: [],
-    token: localStorage.getItem('token')// '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' // TODO (peacecwz): Remove hard coded token
+    token: localStorage.getItem('token')
   }
 }, {
   middleWares: [log]
