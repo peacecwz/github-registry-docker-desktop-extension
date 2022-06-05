@@ -17,10 +17,8 @@ const OrganizationSelector = () => {
             organizationId: orgId
         });
 
-        console.log('result', result);
-
         actions.updateStore({
-            packages: result.Packages || []
+            packages: result.packages || []
         })
     }
 
@@ -28,8 +26,8 @@ const OrganizationSelector = () => {
         disablePortal
         onChange={async (_, v) => await selectOrg(v.label)}
         options={state?.github?.organizations?.map((org) => ({
-            label: org.Name,
-            id: org.Id
+            label: org.name,
+            id: org.id
         }))}
         sx={{ width: 300 }}
         renderInput={(params) => <TextField {...params} />}

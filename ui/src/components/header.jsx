@@ -9,6 +9,7 @@ import {
 import LoginPopup from './login-popup';
 import { useStateMachine } from 'little-state-machine';
 import updateStore from '../store/change-store';
+import OrganizationSelector from './organization-selector';
 
 const Header = () => {
     const { state, actions } = useStateMachine({ updateStore });
@@ -39,11 +40,12 @@ const Header = () => {
                 <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                     Github Registry Manager
                 </Typography>
+                <OrganizationSelector />
                 {getIsLogged()
                     ? <Button color="inherit" onClick={onLogout}>Logout</Button>
                     : <Button color="inherit" onClick={onLogin}>Login</Button>}
             </Toolbar>
-        </AppBar>
+        </AppBar>x
     </Box>
 }
 

@@ -12,7 +12,7 @@ const DockerClient = dockerClient ? dockerClient : {
         vm: {
             service: {
                 get: async (url) => {
-                    return await fetch(`http://localhost:8080${url}`, {
+                    return await fetch(`http://localhost:8090${url}`, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json'
@@ -20,7 +20,7 @@ const DockerClient = dockerClient ? dockerClient : {
                     }).then(res => res.json());
                 },
                 post: async (url, data) => {
-                    return await fetch(`http://localhost:8080${url}`, {
+                    return await fetch(`http://localhost:8090${url}`, {
                         method: 'POST',
                         body: JSON.stringify(data),
                         headers: {
