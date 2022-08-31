@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/google/go-github/v44/github"
 	"golang.org/x/oauth2"
@@ -129,6 +130,22 @@ func GetOrganizations(token string) (Organization, error) {
 	return organizations, err
 }
 
+func DeletePackage(token, organizationId, packageName string, packageVersionId int64) error {
+	client, ctx := initializeGithubClient(token)
+	packageType := "container"
+
+	resp, err := client.Organizations.PackageDeleteVersion(ctx, organizationId, packageType, url.QueryEscape(packageName), packageVersionId)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 204 {
+		return errors.New("cannot delete it")
+	}
+
+	return nil
+}
+
 func GetPackages(token, organizationId string) GetPackagesResponses {
 	client, ctx := initializeGithubClient(token)
 
@@ -165,12 +182,13 @@ func getPackageVersions(client *github.Client, ct context.Context, organizationI
 	for _, githubPackage := range githubPackages {
 		if githubPackage.Name != nil && *githubPackage.Name != "" {
 			packages = append(packages, PackageVersion{
-				Name:        githubPackage.Metadata.Container.Tags[0],
-				Id:          *githubPackage.ID,
-				PackageType: "container",
-				CreatedAt:   Timestamp(*githubPackage.CreatedAt),
-				Url:         *githubPackage.HTMLURL,
-				ImageUrl:    fmt.Sprintf("ghcr.io/%s/%s@%s", organizationName, packageName, *githubPackage.Name),
+				Name:             githubPackage.Metadata.Container.Tags[0],
+				Id:               *githubPackage.ID,
+				PackageType:      "container",
+				CreatedAt:        Timestamp(*githubPackage.CreatedAt),
+				Url:              *githubPackage.HTMLURL,
+				OrganizationName: organizationName,
+				ImageUrl:         fmt.Sprintf("ghcr.io/%s/%s@%s", organizationName, packageName, *githubPackage.Name),
 			})
 		}
 	}

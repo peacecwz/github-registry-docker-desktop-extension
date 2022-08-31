@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/labstack/echo"
 	"github.com/sirupsen/logrus"
@@ -44,6 +45,7 @@ func main() {
 	router.GET("/logout", logout)
 	router.GET("/organizations", getOrganizations)
 	router.GET("/packages", getPackages)
+	router.GET("/package-delete", deletePackage)
 	log.Fatal(router.Start(startURL))
 }
 
@@ -66,6 +68,23 @@ func getPackages(ctx echo.Context) error {
 	packagesResult := GetPackages(accessToken, organizationId)
 
 	return ctx.JSON(http.StatusOK, packagesResult)
+}
+
+func deletePackage(ctx echo.Context) error {
+	organizationName := ctx.QueryParam("organizationName")
+	packageName := ctx.QueryParam("packageName")
+	packageVersionIdStr := ctx.QueryParam("packageVersionId")
+	packageVersionId, err := strconv.ParseInt(packageVersionIdStr, 10, 64)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+
+	err = DeletePackage(accessToken, organizationName, packageName, int64(packageVersionId))
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+
+	return ctx.JSON(http.StatusOK, "")
 }
 
 func auth(ctx echo.Context) error {

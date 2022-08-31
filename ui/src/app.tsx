@@ -2,7 +2,7 @@ import * as React from 'react';
 import {useEffect, useState} from 'react';
 import Button from '@mui/material/Button';
 import {createDockerDesktopClient} from '@docker/extension-api-client';
-import {Autocomplete, Grid, Stack, TextField, Typography} from '@mui/material';
+import {Autocomplete, Backdrop, Grid, Stack, TextField, Typography} from '@mui/material';
 import {copyTextToClipboard} from "./clipboard";
 import {alpha, styled} from '@mui/material/styles';
 import ContainerList from "./container-list";
@@ -37,6 +37,29 @@ const Search = styled('div')(({theme}) => ({
     },
 }));
 
+const PackageLoading = () => {
+    return <Backdrop open={true}>
+        <div
+            style={{
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                transform: 'translate(-50%, -50%)'
+            }}
+        >
+            <Stack direction={"column"}
+                   justifyContent="center"
+                   spacing={2}
+                   alignItems="center">
+                <GithubLoader/>
+                <Typography color={"white"}>
+                    Processing...
+                </Typography>
+            </Stack>
+        </div>
+    </Backdrop>
+}
+
 const Header = () => {
     return <>
         <Typography variant="h3">Github Containers</Typography>
@@ -55,6 +78,7 @@ export function App() {
     const [organizations, setOrganizations] = useState([])
     const [selectedOrganization, setSelectedOrganization] = useState<any>()
     const [packages, setPackages] = useState([])
+    const [packageLoading, setPackageLoading] = useState(false)
 
     const auth = async () => {
         setState("auth-loading")
@@ -74,17 +98,25 @@ export function App() {
     };
 
     const completeAuth = async () => {
-        await ddClient.extension.vm?.service?.get('/auth/complete');
+        try {
+            await ddClient.extension.vm?.service?.get('/auth/complete');
+        } catch (e) {
+            client.desktopUI.toast.error("Cannot login to Github");
+        }
 
         checkAuth();
     };
 
     const getOrganizations = async () => {
         const result: [] | any = await ddClient.extension.vm?.service?.get('/organizations');
-        setOrganizations(result.map((org: any) => ({
+        const orgs = result.map((org: any) => ({
             id: org.id,
             label: org.login
-        })))
+        }));
+        setOrganizations(orgs)
+        if (orgs.length > 0) {
+            await onOrganizationChange(null, orgs[0])
+        }
     };
 
     const getPackages = async (org: any) => {
@@ -103,7 +135,6 @@ export function App() {
             setMe(result)
             await getOrganizations();
             setState("idle")
-            console.log("me", result)
         }).catch(err => {
             setMe(null)
             setState("idle")
@@ -113,6 +144,10 @@ export function App() {
     const logout = async () => {
         await ddClient.extension.vm?.service?.get('/logout');
         checkAuth()
+    }
+
+    const reload = async () => {
+        await onOrganizationChange(null, selectedOrganization)
     }
 
     useEffect(() => {
@@ -126,6 +161,7 @@ export function App() {
     const Main = () => {
         return me ? (
             <>
+                {packageLoading && <PackageLoading/>}
                 <Grid container spacing={2}>
                     <Grid item xs={10}>
                         <Header/>
@@ -142,6 +178,7 @@ export function App() {
                         <Autocomplete
                             placeholder={"Organization"}
                             options={organizations}
+                            value={selectedOrganization}
                             onChange={onOrganizationChange}
                             renderInput={(params) => <TextField {...params} label="Your Organization"/>}
                         />
@@ -150,7 +187,8 @@ export function App() {
                 {selectedOrganization && packages && packages.length > 0 &&
                     <Stack style={{height: "%100", flexGrow: 1}} direction="row" alignItems="start" spacing={2}
                            sx={{mt: 4}}>
-                        <ContainerList user={me} client={client} packages={packages}/>
+                        <ContainerList user={me} onChange={reload} setState={setPackageLoading} client={client}
+                                       packages={packages}/>
                     </Stack>
                 }
             </>
@@ -175,7 +213,7 @@ export function App() {
                         </Typography>
 
                         {state === "auth-approve-request" && <TextField
-                            sx={{width: 230}}
+                            sx={{width: 250}}
                             disabled={true}
                             multiline
                             variant="outlined"

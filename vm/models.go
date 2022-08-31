@@ -27,12 +27,13 @@ type Timestamp struct {
 }
 
 type PackageVersion struct {
-	Id          int64     `json:"id"`
-	Name        string    `json:"name"`
-	PackageType string    `json:"package_type"`
-	Url         string    `json:"url"`
-	ImageUrl    string    `json:"image_url"`
-	CreatedAt   Timestamp `json:"createdAt"`
+	Id               int64     `json:"id"`
+	Name             string    `json:"name"`
+	PackageType      string    `json:"package_type"`
+	Url              string    `json:"url"`
+	ImageUrl         string    `json:"image_url"`
+	OrganizationName string    `json:"organizationName"`
+	CreatedAt        Timestamp `json:"createdAt"`
 }
 
 type GetPackagesResponses struct {

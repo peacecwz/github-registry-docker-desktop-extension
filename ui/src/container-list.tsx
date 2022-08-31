@@ -17,36 +17,54 @@ import {v1} from "@docker/extension-api-client-types";
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 
-function Row(props: { user: any, pkg: any, client: v1.DockerDesktopClient }) {
-    const {user, pkg, client} = props;
+function Row(props: { setState: any, onChange: any, user: any, pkg: any, client: v1.DockerDesktopClient }) {
+    const {setState, user, pkg, client, onChange} = props;
     const [open, setOpen] = React.useState(false);
 
     const handleDownload = async (tag: any) => {
-        const loginResult = await client.docker.cli.exec("login", [
-            "ghcr.io",
-            "--username",
-            user.login,
-            "--password",
-            user.token
-        ]);
+        setState(true)
 
-        if (loginResult.stdout.indexOf("Login Succeeded") === -1) {
-            client.desktopUI.toast.error("Cannot login to Github Registry");
-            return
+        try {
+            const loginResult = await client.docker.cli.exec("login", [
+                "ghcr.io",
+                "--username",
+                user.login,
+                "--password",
+                user.token
+            ]);
+
+            if (loginResult.stdout.indexOf("Login Succeeded") === -1) {
+                client.desktopUI.toast.error("Cannot login to Github Registry");
+                return
+            }
+
+            const pullImageResult = await client.docker.cli.exec("pull", [
+                tag.image_url
+            ]);
+
+            if (pullImageResult.stdout.indexOf("Status: Downloaded newer") === -1 && pullImageResult.stdout.indexOf("Status: Image is up to date") === -1) {
+                client.desktopUI.toast.error("Cannot pull from Github Registry");
+                return
+            }
+
+            client.desktopUI.toast.success("Image pulled successfully");
+        } catch (e) {
+            client.desktopUI.toast.error("Cannot pull image from Github Registry")
         }
 
-        const pullImageResult = await client.docker.cli.exec("pull", [
-            tag.image_url
-        ]);
-
-        if (pullImageResult.stdout.indexOf("Status: Downloaded newer") === -1 && pullImageResult.stdout.indexOf("Status: Image is up to date") === -1) {
-            client.desktopUI.toast.error("Cannot pull from Github Registry");
-            return
-        }
+        setState(false)
     }
 
-    const handleDelete = (tag: any) => {
-
+    const handleDelete = async (tag: any) => {
+        setState(true)
+        try {
+            await client.extension.vm?.service?.get(`/package-delete?organizationName=${tag.organizationName}&packageName=${pkg.name}&packageVersionId=${tag.id}`);
+            client.desktopUI.toast.success("Deleted image successfully");
+            await onChange()
+        } catch (e) {
+            client.desktopUI.toast.error("Cannot delete image from Github Registry")
+        }
+        setState(false)
     }
 
     return (
@@ -126,7 +144,7 @@ function Row(props: { user: any, pkg: any, client: v1.DockerDesktopClient }) {
     );
 }
 
-export default function CollapsibleTable({packages, client, user}) {
+export default function CollapsibleTable({packages, client, user, setState, onChange}) {
     return (
         <TableContainer component={Paper}>
             <Table aria-label="containers">
@@ -140,7 +158,8 @@ export default function CollapsibleTable({packages, client, user}) {
                 </TableHead>
                 <TableBody>
                     {packages.map((pkg) => (
-                        <Row key={pkg.id} user={user} client={client} pkg={pkg}/>
+                        <Row key={pkg.id} onChange={onChange} setState={setState} user={user} client={client}
+                             pkg={pkg}/>
                     ))}
                 </TableBody>
             </Table>
