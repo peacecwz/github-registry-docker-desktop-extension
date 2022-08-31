@@ -1,4 +1,4 @@
 node_modules
 ui/build
-./idea
+.idea/
 .DS_Store
