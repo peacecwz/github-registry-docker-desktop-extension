@@ -23,19 +23,19 @@ COPY ui /ui
 RUN npm run build
 
 FROM alpine
-LABEL org.opencontainers.image.title="github-registry" \
-    org.opencontainers.image.description="Docker Desktop Extension for Github Registry, Manage your organization or account registry on Docker Desktop" \
-    org.opencontainers.image.vendor="Peacecwz" \
+LABEL org.opencontainers.image.title="Github Registry" \
+    org.opencontainers.image.description="Docker Desktop Extension for Github Registry, Manage your organization or account registry" \
+    org.opencontainers.image.vendor="Baris Ceviz (@Peacecwz)" \
     com.docker.desktop.extension.api.version=">= 0.2.3" \
-    com.docker.extension.screenshots="" \
-    com.docker.extension.detailed-description="" \
-    com.docker.extension.publisher-url="" \
+    com.docker.extension.screenshots="https://raw.githubusercontent.com/peacecwz/github-registry-docker-desktop-extension/main/github.svg" \
+    com.docker.extension.detailed-description="Docker Desktop Extension for Github Registry, Manage your organization or account registry" \
+    com.docker.extension.publisher-url="https://github.com/peacecwz" \
     com.docker.extension.additional-urls="" \
     com.docker.extension.changelog=""
 
 COPY --from=builder /backend/bin/service /
 COPY docker-compose.yaml .
 COPY metadata.json .
-COPY docker.svg .
+COPY github.svg .
 COPY --from=client-builder /ui/build ui
 CMD /service -socket /run/guest-services/extension-github-registry.sock
