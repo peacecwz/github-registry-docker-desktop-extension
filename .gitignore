@@ -1,6 +1,3 @@
-.idea
 node_modules
-**/node_modules
-service
-
-main
+ui/build
+./idea

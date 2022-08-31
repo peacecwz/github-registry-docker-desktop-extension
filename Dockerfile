@@ -1,15 +1,14 @@
 FROM golang:1.17-alpine AS builder
 ENV CGO_ENABLED=0
-RUN apk add --update make
 WORKDIR /backend
-COPY go.* .
+COPY vm/go.* .
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     go mod download
-COPY . .
+COPY vm/. .
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    make bin
+    go build -trimpath -ldflags="-s -w" -o bin/service
 
 FROM --platform=$BUILDPLATFORM node:17.7-alpine3.14 AS client-builder
 WORKDIR /ui
@@ -25,8 +24,8 @@ RUN npm run build
 
 FROM alpine
 LABEL org.opencontainers.image.title="github-registry" \
-    org.opencontainers.image.description="Manage Github Registry on Docker Desktop" \
-    org.opencontainers.image.vendor="Baris Ceviz (@PeaceCwz)" \
+    org.opencontainers.image.description="Docker Desktop Extension for Github Registry, Manage your organization or account registry on Docker Desktop" \
+    org.opencontainers.image.vendor="Peacecwz" \
     com.docker.desktop.extension.api.version=">= 0.2.3" \
     com.docker.extension.screenshots="" \
     com.docker.extension.detailed-description="" \
