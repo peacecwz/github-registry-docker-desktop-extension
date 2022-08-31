@@ -27,7 +27,7 @@ LABEL org.opencontainers.image.title="Github Registry" \
     org.opencontainers.image.description="Docker Desktop Extension for Github Registry, Manage your organization or account registry" \
     org.opencontainers.image.vendor="Baris Ceviz (@Peacecwz)" \
     com.docker.desktop.extension.api.version=">= 0.2.3" \
-    com.docker.extension.screenshots="https://raw.githubusercontent.com/peacecwz/github-registry-docker-desktop-extension/main/github.svg" \
+    com.docker.desktop.extension.icon="https://raw.githubusercontent.com/peacecwz/github-registry-docker-desktop-extension/main/github.svg" \
     com.docker.extension.detailed-description="Docker Desktop Extension for Github Registry, Manage your organization or account registry" \
     com.docker.extension.publisher-url="https://github.com/peacecwz" \
     com.docker.extension.additional-urls="" \
