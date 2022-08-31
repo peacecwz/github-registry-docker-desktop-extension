@@ -4,5 +4,6 @@ Manage your organizaton containers on Docker Deskto. Easy way to pull, delete or
 
 ## Demo
 
-![](https://github.com/peacecwz/github-registry-docker-desktop-extension/demo.gif)
+![Github Registry Extension Demo, Recorded by veed.io](https://raw.githubusercontent.com/peacecwz/github-registry-docker-desktop-extension/main/demo.gif)
+
 
