@@ -1,6 +1,6 @@
 # Github Registry for Docker Desktop
 
-Manage your organizaton containers on Docker Deskto. Easy way to pull, delete organizaton containers
+Manage your organizaton containers on Docker Desktop. Easy way to pull, delete organizaton containers
 
 ## Features
 
