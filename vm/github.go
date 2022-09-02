@@ -133,8 +133,16 @@ func GetOrganizations(token string) (Organization, error) {
 func DeletePackage(token, organizationId, packageName string, packageVersionId int64) error {
 	client, ctx := initializeGithubClient(token)
 	packageType := "container"
+	isOrg := username != organizationId
+	
+	var resp *github.Response
+	var err error
+	if isOrg {
+		resp, err = client.Organizations.PackageDeleteVersion(ctx, organizationId, packageType, url.QueryEscape(packageName), packageVersionId)
+	} else {
+		resp, err = client.Users.PackageDeleteVersion(ctx, organizationId, packageType, url.QueryEscape(packageName), packageVersionId)
+	}
 
-	resp, err := client.Organizations.PackageDeleteVersion(ctx, organizationId, packageType, url.QueryEscape(packageName), packageVersionId)
 	if err != nil {
 		return err
 	}
@@ -150,9 +158,20 @@ func GetPackages(token, organizationId string) GetPackagesResponses {
 	client, ctx := initializeGithubClient(token)
 
 	packageType := "container"
-	githubPackages, _, err := client.Organizations.ListPackages(ctx, organizationId, &github.PackageListOptions{
-		PackageType: &packageType,
-	})
+	isOrg := username != organizationId
+
+	var githubPackages []*github.Package
+	var err error
+
+	if isOrg {
+		githubPackages, _, err = client.Organizations.ListPackages(ctx, organizationId, &github.PackageListOptions{
+			PackageType: &packageType,
+		})
+	} else {
+		githubPackages, _, err = client.Users.ListPackages(ctx, organizationId, &github.PackageListOptions{
+			PackageType: &packageType,
+		})
+	}
 
 	if err != nil {
 		return GetPackagesResponses{Message: fmt.Sprintf("\n error: %v\n", err)}
@@ -167,7 +186,7 @@ func GetPackages(token, organizationId string) GetPackagesResponses {
 				Name:            *githubPackage.Name,
 				Id:              *githubPackage.ID,
 				Url:             *githubPackage.HTMLURL,
-				PackageVersions: getPackageVersions(client, ctx, organizationId, *githubPackage.Owner.Login, *githubPackage.Name),
+				PackageVersions: getPackageVersions(client, ctx, organizationId, *githubPackage.Owner.Login, *githubPackage.Name, isOrg),
 			})
 		}
 	}
@@ -175,8 +194,14 @@ func GetPackages(token, organizationId string) GetPackagesResponses {
 	return GetPackagesResponses{Packages: packages}
 }
 
-func getPackageVersions(client *github.Client, ct context.Context, organizationId string, organizationName string, packageName string) []PackageVersion {
-	githubPackages, _, _ := client.Organizations.PackageGetAllVersions(ct, organizationId, "container", url.QueryEscape(packageName), nil)
+func getPackageVersions(client *github.Client, ct context.Context, organizationId string, organizationName string, packageName string, isOrg bool) []PackageVersion {
+	var githubPackages []*github.PackageVersion
+	if isOrg {
+		githubPackages, _, _ = client.Organizations.PackageGetAllVersions(ct, organizationId, "container", url.QueryEscape(packageName), nil)
+	} else {
+		githubPackages, _, _ = client.Users.PackageGetAllVersions(ct, organizationId, "container", url.QueryEscape(packageName), nil)
+	}
+
 	var packages []PackageVersion
 
 	for _, githubPackage := range githubPackages {

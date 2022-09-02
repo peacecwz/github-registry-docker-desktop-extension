@@ -18,7 +18,7 @@ const (
 	Scope          = "user,repo,read:packages,delete:packages,read:org"
 )
 
-var deviceCode, accessToken = "", ""
+var deviceCode, accessToken, username = "", "", ""
 
 func main() {
 	var socketPath string
@@ -112,6 +112,9 @@ func getMe(ctx echo.Context) error {
 		log.Fatalln(err)
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
+
+	username = user.Login
+
 	return ctx.JSON(http.StatusOK, user)
 }
 

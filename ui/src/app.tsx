@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import Button from '@mui/material/Button';
 import {createDockerDesktopClient} from '@docker/extension-api-client';
 import {Autocomplete, Backdrop, Grid, Stack, TextField, Typography} from '@mui/material';
-import {copyTextToClipboard} from "../utils/clipboard";
+import {copyTextToClipboard} from "./utils/clipboard";
 import {alpha, styled} from '@mui/material/styles';
 import ContainerList from "./container-list";
 import GithubLoader from "./github-loader";
@@ -107,13 +107,24 @@ export function App() {
         checkAuth();
     };
 
-    const getOrganizations = async () => {
+    const getOrganizations = async (me) => {
         const result: [] | any = await ddClient.extension.vm?.service?.get('/organizations');
         const orgs = result.map((org: any) => ({
             id: org.id,
             label: org.login
         }));
-        setOrganizations(orgs)
+
+        if (me) {
+            setOrganizations([...orgs, {
+                id: me?.login,
+                label: me?.login
+            }
+        ])
+        } else {
+            setOrganizations(orgs)
+        }
+
+
         if (orgs.length > 0) {
             await onOrganizationChange(null, orgs[0])
         }
@@ -125,15 +136,17 @@ export function App() {
     }
 
     const onOrganizationChange = async (event, value) => {
+        setPackageLoading(true)
         setSelectedOrganization(value)
         await getPackages(value)
+        setPackageLoading(false)
     }
 
     const checkAuth = () => {
         setState("app-loading")
         ddClient.extension.vm?.service?.get('/me').then(async (result: any) => {
             setMe(result)
-            await getOrganizations();
+            await getOrganizations(result);
             setState("idle")
         }).catch(err => {
             setMe(null)
