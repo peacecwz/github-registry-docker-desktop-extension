@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import Button from '@mui/material/Button';
 import {createDockerDesktopClient} from '@docker/extension-api-client';
 import {Autocomplete, Backdrop, Grid, Stack, TextField, Typography} from '@mui/material';
-import {copyTextToClipboard} from "./clipboard";
+import {copyTextToClipboard} from "../utils/clipboard";
 import {alpha, styled} from '@mui/material/styles';
 import ContainerList from "./container-list";
 import GithubLoader from "./github-loader";
