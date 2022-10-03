@@ -205,7 +205,7 @@ func getPackageVersions(client *github.Client, ct context.Context, organizationI
 	var packages []PackageVersion
 
 	for _, githubPackage := range githubPackages {
-		if githubPackage.Name != nil && *githubPackage.Name != "" {
+		if githubPackage.Name != nil && *githubPackage.Name != "" && len(githubPackage.Metadata.Container.Tags)!=0 {
 			packages = append(packages, PackageVersion{
 				Name:             githubPackage.Metadata.Container.Tags[0],
 				Id:               *githubPackage.ID,
