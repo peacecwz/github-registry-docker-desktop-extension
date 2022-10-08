@@ -16,12 +16,21 @@ import {Link} from "@mui/material";
 import {v1} from "@docker/extension-api-client-types";
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
+import { GithubUser, Package, PackageVersion } from './types';
 
-function Row(props: { setState: any, onChange: any, user: any, pkg: any, client: v1.DockerDesktopClient }) {
+interface RowProps {
+    readonly setState: React.Dispatch<React.SetStateAction<boolean>>,
+    readonly onChange: () => void,
+    readonly user: GithubUser,
+    readonly pkg: Package,
+    readonly client: v1.DockerDesktopClient
+}
+
+function Row(props: RowProps) {
     const {setState, user, pkg, client, onChange} = props;
     const [open, setOpen] = React.useState(false);
 
-    const handleDownload = async (tag: any) => {
+    const handleDownload = async (tag: PackageVersion) => {
         setState(true)
 
         try {
@@ -55,7 +64,7 @@ function Row(props: { setState: any, onChange: any, user: any, pkg: any, client:
         setState(false)
     }
 
-    const handleDelete = async (tag: any) => {
+    const handleDelete = async (tag: PackageVersion) => {
         setState(true)
         try {
             await client.extension.vm?.service?.get(`/package-delete?organizationName=${tag.organizationName}&packageName=${pkg.name}&packageVersionId=${tag.id}`);
