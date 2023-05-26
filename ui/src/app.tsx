@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {useEffect, useState} from 'react';
 import Button from '@mui/material/Button';
 import {createDockerDesktopClient} from '@docker/extension-api-client';
@@ -9,6 +8,12 @@ import ContainerList from "./container-list";
 import GithubLoader from "./github-loader";
 import {LoadingButton} from '@mui/lab';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import { GetPackagesResponses, GithubUser, Organization, Package } from './types';
+
+interface OrganizationOption {
+    readonly id: string;
+    readonly label: string;
+}
 
 // Note: This line relies on Docker Desktop's presence as a host application.
 // If you're running this React app in a browser, it won't work properly.
@@ -16,10 +21,6 @@ const client = createDockerDesktopClient();
 
 function useDockerDesktopClient() {
     return client;
-}
-
-type GithubUser = {
-    login: string;
 }
 
 const Search = styled('div')(({theme}) => ({
@@ -70,21 +71,23 @@ const Header = () => {
     </>
 }
 
+type State = "app-loading" | "auth-loading" | "auth-approve-request" | "idle"
+
 export function App() {
-    const [state, setState] = useState("app-loading")
-    const [authCode, setAuthCode] = useState();
-    const [me, setMe] = useState<GithubUser>();
+    const [state, setState] = useState<State>("app-loading")
+    const [authCode, setAuthCode] = useState("");
+    const [me, setMe] = useState<GithubUser | null>(null);
     const ddClient = useDockerDesktopClient();
-    const [organizations, setOrganizations] = useState([])
-    const [selectedOrganization, setSelectedOrganization] = useState<any>()
-    const [packages, setPackages] = useState([])
+    const [organizationOptions, setOrganizationOptions] = useState<OrganizationOption[]>([])
+    const [selectedOrganization, setSelectedOrganization] = useState<Organization>()
+    const [packages, setPackages] = useState<Package[]>([])
     const [packageLoading, setPackageLoading] = useState(false)
 
     const auth = async () => {
         setState("auth-loading")
-        const userCode: string | any = await ddClient.extension.vm?.service?.get('/auth');
+        const userCode = await ddClient.extension.vm?.service?.get('/auth');
 
-        if (userCode) {
+        if (typeof userCode === "string" && userCode != "") {
             setAuthCode(userCode)
             await copyTextToClipboard(userCode)
             setTimeout(() => {
@@ -107,31 +110,31 @@ export function App() {
         checkAuth();
     };
 
-    const getOrganizations = async (me) => {
-        const result: [] | any = await ddClient.extension.vm?.service?.get('/organizations');
-        const orgs = result.map((org: any) => ({
-            id: org.id,
+    const getOrganizations = async (me: GithubUser | null) => {
+        const result = await ddClient.extension.vm?.service?.get('/organizations') as Organization[];
+        const orgOptions = result.map<OrganizationOption>((org) => ({
+            id: org.id.toString(),
             label: org.login
         }));
 
         if (me) {
-            setOrganizations([...orgs, {
+            setOrganizationOptions([...orgOptions, {
                 id: me?.login,
                 label: me?.login
             }
         ])
         } else {
-            setOrganizations(orgs)
+            setOrganizationOptions(orgOptions)
         }
 
 
-        if (orgs.length > 0) {
-            await onOrganizationChange(null, orgs[0])
+        if (orgOptions.length > 0) {
+            await onOrganizationChange(null, orgOptions[0])
         }
     };
 
-    const getPackages = async (org: any) => {
-        const result: [] | any = await ddClient.extension.vm?.service?.get(`/packages?organizationId=${org.id}`);
+    const getPackages = async (org: OrganizationOption) => {
+        const result = await ddClient.extension.vm?.service?.get(`/packages?organizationId=${org.id}`) as GetPackagesResponses;
         setPackages(result.packages)
     }
 
@@ -144,7 +147,7 @@ export function App() {
 
     const checkAuth = () => {
         setState("app-loading")
-        ddClient.extension.vm?.service?.get('/me').then(async (result: any) => {
+        ddClient.extension.vm?.service?.get('/me').then(async (result: GithubUser) => {
             setMe(result)
             await getOrganizations(result);
             setState("idle")
@@ -190,7 +193,7 @@ export function App() {
                     <Search>
                         <Autocomplete
                             placeholder={"Organization"}
-                            options={organizations}
+                            options={organizationOptions}
                             value={selectedOrganization}
                             onChange={onOrganizationChange}
                             renderInput={(params) => <TextField {...params} label="Your Organization"/>}
